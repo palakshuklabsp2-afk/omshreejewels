@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-crimson: #9b1b30;
+  --color-wine: #5c0a18;
+  --color-gold: #c9a227;
+  --color-ivory: #fffaf8;
+  --font-display: "Cormorant Garamond", serif;
+  --font-sans: "Manrope", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ivory);
+  color: #2b1216;
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #9b1b30, #5c0a18);
+  color: white;
+  padding: 0.7rem 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(155, 27, 48, 0.25);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(155, 27, 48, 0.25);
+  color: #9b1b30;
+  padding: 0.7rem 1.2rem;
+  font-weight: 600;
+  background: white;
+}
+
+.glass {
+  background: rgba(255, 250, 248, 0.86);
+  backdrop-filter: blur(16px);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f3e6e8 25%, #fbeff1 50%, #f3e6e8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-glow {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(201, 162, 39, 0.25), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(155, 27, 48, 0.35), transparent 42%),
+    linear-gradient(160deg, #5c0a18, #9b1b30 55%, #2b0710);
+}
+
+.fade-up {
+  animation: fadeUp 0.7s ease both;
+}
