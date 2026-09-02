@@ -10,6 +10,7 @@ export default function HomepageAdmin() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
   const [saving, setSaving] = useState(false);
   const [savingVideo, setSavingVideo] = useState(false);
 
@@ -40,19 +41,104 @@ export default function HomepageAdmin() {
     toast.success("Photo uploaded. Click Save to show it on the homepage.");
   }
 
-  async function uploadVideo(file: File) {
-    setUploadingVideo(true);
-    const form = new FormData();
-    form.set("file", file);
-    const res = await fetch("/api/admin/upload-video", { method: "POST", body: form });
-    const data = await res.json();
-    setUploadingVideo(false);
-    if (!res.ok) {
-      toast.error(data.error || "Video upload failed");
+  async function publishVideo(url: string) {
+    setVideo(url);
+    const saveRes = await fetch("/api/admin/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ homepageVideo: url }),
+    });
+    if (!saveRes.ok) {
+      toast.success("Video uploaded. Click Save homepage video to publish it.");
       return;
     }
-    setVideo(data.url);
-    toast.success("Video uploaded. Click Save video to show it on the homepage.");
+    toast.success("Homepage video is live");
+  }
+
+  async function uploadToCloudinary(file: File, sign: {
+    cloudName: string;
+    apiKey: string;
+    timestamp: number;
+    signature: string;
+    folder: string;
+  }) {
+    const form = new FormData();
+    form.set("file", file);
+    form.set("api_key", sign.apiKey);
+    form.set("timestamp", String(sign.timestamp));
+    form.set("signature", sign.signature);
+    form.set("folder", sign.folder);
+    const url = `https://api.cloudinary.com/v1_1/${sign.cloudName}/video/upload`;
+    const data = await new Promise<{ secure_url?: string; error?: { message?: string } }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", url);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) setVideoProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        try {
+          resolve(JSON.parse(xhr.responseText) as { secure_url?: string; error?: { message?: string } });
+        } catch {
+          reject(new Error("Could not read Cloudinary response"));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Network error while uploading video"));
+      xhr.send(form);
+    });
+    if (!data.secure_url) {
+      throw new Error(data.error?.message || "Cloudinary did not return a video URL");
+    }
+    return data.secure_url;
+  }
+
+  async function uploadVideo(file: File) {
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("Video must be under 100 MB. Compress it or paste a YouTube/Vimeo link.");
+      return;
+    }
+    setUploadingVideo(true);
+    setVideoProgress(0);
+    try {
+      const signRes = await fetch("/api/admin/cloudinary-sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder: "om-shree-jewels/videos" }),
+      });
+      const sign = (await signRes.json().catch(() => ({}))) as {
+        direct?: boolean;
+        cloudName?: string;
+        apiKey?: string;
+        timestamp?: number;
+        signature?: string;
+        folder?: string;
+      };
+      if (signRes.ok && sign.direct && sign.cloudName && sign.apiKey && sign.timestamp && sign.signature && sign.folder) {
+        const url = await uploadToCloudinary(file, {
+          cloudName: sign.cloudName,
+          apiKey: sign.apiKey,
+          timestamp: sign.timestamp,
+          signature: sign.signature,
+          folder: sign.folder,
+        });
+        await publishVideo(url);
+        return;
+      }
+
+      const form = new FormData();
+      form.set("file", file);
+      const res = await fetch("/api/admin/upload-video", { method: "POST", body: form });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        toast.error(data.error || "Video upload failed. Try an MP4 under 100 MB, or paste a YouTube/Vimeo link.");
+        return;
+      }
+      await publishVideo(data.url);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Video upload failed. Try a smaller MP4 or a YouTube link.");
+    } finally {
+      setUploadingVideo(false);
+      setVideoProgress(0);
+    }
   }
 
   async function save() {
@@ -132,7 +218,7 @@ export default function HomepageAdmin() {
       >
         <h2 className="font-display text-2xl text-wine">Homepage film (only one)</h2>
         <p className="text-xs text-zinc-500">
-          Upload one MP4/WebM/MOV (under 60 MB) or paste a YouTube/Vimeo link. The homepage shows this single video in a
+          Upload one MP4/WebM/MOV (under 100 MB) or paste a YouTube/Vimeo link. The homepage shows this single video in a
           gold cinematic frame.
         </p>
         <label className="block rounded-2xl border border-dashed border-crimson/30 bg-ivory/60 px-4 py-4 cursor-pointer">
@@ -149,7 +235,11 @@ export default function HomepageAdmin() {
             }}
           />
         </label>
-        {uploadingVideo ? <p className="text-xs text-zinc-500">Uploading video… this can take a minute.</p> : null}
+        {uploadingVideo ? (
+          <p className="text-xs text-zinc-500">
+            Uploading video{videoProgress ? `… ${videoProgress}%` : "… this can take a minute."}
+          </p>
+        ) : null}
         <label className="text-sm">
           Or paste YouTube / Vimeo / video URL
           <input

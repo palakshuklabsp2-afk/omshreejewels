@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
-import { formatInr } from "@/lib/utils";
+import { formatInr, productPricing } from "@/lib/utils";
 import { optimizedImage } from "@/lib/images";
 import { useCart } from "@/components/cart-provider";
 import { toast } from "sonner";
@@ -20,8 +20,7 @@ export type ProductCardData = {
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const { add } = useCart();
-  const price = product.salePrice && product.salePrice < product.price ? product.salePrice : product.price;
-  const discounted = product.salePrice && product.salePrice < product.price;
+  const pricing = productPricing(product.price, product.salePrice);
   const img = optimizedImage(product.images?.[0]);
 
   async function wishlist() {
@@ -48,17 +47,24 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           sizes="(max-width:768px) 50vw, 25vw"
           className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
         />
-        {discounted && (
-          <span className="absolute top-2 left-2 rounded-full bg-crimson text-white text-[10px] px-2 py-1">Sale</span>
+        {pricing.discounted && (
+          <span className="absolute top-2 left-2 rounded-full bg-crimson text-white text-[10px] font-semibold px-2 py-1">
+            {pricing.percent}% OFF
+          </span>
         )}
       </Link>
       <div className="p-3">
         <Link href={`/product/${product.slug}`} className="font-medium text-sm line-clamp-2 min-h-10">
           {product.name}
         </Link>
-        <div className="mt-1 flex items-baseline gap-2">
-          <span className="text-crimson font-semibold">{formatInr(price)}</span>
-          {discounted && <span className="text-xs text-zinc-400 line-through">{formatInr(product.price)}</span>}
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="text-crimson font-semibold">{formatInr(pricing.selling)}</span>
+          {pricing.discounted && (
+            <>
+              <span className="text-xs text-zinc-400 line-through">{formatInr(pricing.mrp)}</span>
+              <span className="text-[11px] text-crimson">Save {formatInr(pricing.saved)}</span>
+            </>
+          )}
         </div>
         <div className="mt-3 flex gap-2">
           <button
@@ -67,7 +73,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
                 productId: String(product._id),
                 name: product.name,
                 image: img,
-                price,
+                price: pricing.selling,
                 stock: product.stock || 10,
               })
             }

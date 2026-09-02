@@ -40,6 +40,70 @@ export function formatInr(amount: number) {
   }).format(amount);
 }
 
+export function productPricing(price: number, salePrice?: number | null) {
+  const mrp = Math.max(0, Math.round(Number(price) || 0));
+  const saleNum = salePrice == null ? NaN : Math.round(Number(salePrice));
+  const discounted = Number.isFinite(saleNum) && saleNum > 0 && saleNum < mrp;
+  const selling = discounted ? saleNum : mrp;
+  const saved = discounted ? mrp - selling : 0;
+  const percent = discounted && mrp > 0 ? Math.round((saved / mrp) * 100) : 0;
+  return { mrp, selling, discounted, percent, saved };
+}
+
+export function salePriceFromDiscount(price: number, percent: number) {
+  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(percent) || percent <= 0) return null;
+  const capped = Math.min(99, percent);
+  return Math.max(1, Math.round(price * (1 - capped / 100)));
+}
+
+export type DeliveryAddress = {
+  fullName: string;
+  phone: string;
+  house: string;
+  street: string;
+  city: string;
+  state: string;
+  pinCode: string;
+};
+
+export function parseAddress(raw: unknown): DeliveryAddress | null {
+  if (!raw) return null;
+  let value: unknown = raw;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value !== "object" || value === null) return null;
+  const o = value as Record<string, unknown>;
+  const fullName = String(o.fullName || o.full_name || o.name || "").trim();
+  const phone = String(o.phone || o.phoneNumber || o.mobile || "").trim();
+  const house = String(o.house || o.houseFlat || o.line1 || o.addressLine1 || "").trim();
+  const street = String(o.street || o.area || o.line2 || o.addressLine2 || o.landmark || "").trim();
+  const city = String(o.city || "").trim();
+  const state = String(o.state || "").trim();
+  const pinCode = String(o.pinCode || o.pin_code || o.pincode || "").trim();
+  if (!fullName && !phone && !house && !street && !city) return null;
+  return { fullName, phone, house, street, city, state, pinCode };
+}
+
+export function formatStreetAddress(address: DeliveryAddress | null | undefined) {
+  if (!address) return "";
+  return [
+    [address.house, address.street].filter(Boolean).join(", "),
+    [address.city, address.state].filter(Boolean).join(", ") + (address.pinCode ? ` – ${address.pinCode}` : ""),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+export function formatAddressBlock(address: DeliveryAddress | null | undefined) {
+  if (!address) return "";
+  return [address.fullName, address.phone, formatStreetAddress(address)].filter(Boolean).join("\n");
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

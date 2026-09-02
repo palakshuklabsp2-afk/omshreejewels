@@ -6,7 +6,15 @@ type Customer = {
   _id: string;
   name?: string;
   phone: string;
-  address?: { city?: string; house?: string; street?: string };
+  address?: {
+    fullName?: string;
+    phone?: string;
+    house?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    pinCode?: string;
+  } | null;
   totalOrders: number;
 };
 
@@ -34,10 +42,25 @@ export default function CustomersAdmin() {
           <tbody>
             {items.map((c) => (
               <tr key={c._id} className="border-b">
-                <td className="p-3">{c.name || "—"}</td>
-                <td>{c.phone}</td>
+                <td className="p-3">{c.name || c.address?.fullName || "—"}</td>
                 <td>
-                  {c.address ? `${c.address.house}, ${c.address.street}, ${c.address.city}` : "Not saved"}
+                  <div>{c.phone}</div>
+                  {c.address?.phone && c.address.phone !== c.phone ? (
+                    <div className="text-xs text-zinc-500">Address: {c.address.phone}</div>
+                  ) : null}
+                </td>
+                <td className="whitespace-pre-line">
+                  {c.address
+                    ? [
+                        c.address.fullName,
+                        c.address.phone,
+                        [c.address.house, c.address.street].filter(Boolean).join(", "),
+                        [c.address.city, c.address.state].filter(Boolean).join(", ") +
+                          (c.address.pinCode ? ` – ${c.address.pinCode}` : ""),
+                      ]
+                        .filter(Boolean)
+                        .join("\n")
+                    : "Not saved"}
                 </td>
                 <td>{c.totalOrders}</td>
               </tr>

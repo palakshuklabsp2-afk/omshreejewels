@@ -42,6 +42,7 @@ export function HomepageShowreel({ src }: { src: string }) {
                 muted
                 loop
                 playsInline
+                controls
                 preload="metadata"
                 className="absolute inset-0 h-full w-full object-cover"
               >

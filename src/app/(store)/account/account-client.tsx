@@ -31,6 +31,17 @@ type Props = {
     status: string;
     subtotal: number;
     remainingCod?: number | null;
+    customerName?: string;
+    customerPhone?: string;
+    address?: {
+      fullName: string;
+      phone: string;
+      house: string;
+      street: string;
+      city: string;
+      state: string;
+      pinCode: string;
+    } | null;
     items: { name: string; qty: number; price: number }[];
   }[];
 };
@@ -163,6 +174,17 @@ export function AccountClient({ customer, orders }: Props) {
                 <div>
                   <div className="font-semibold">{o.orderNumber}</div>
                   <div className="text-sm text-zinc-500">{new Date(o.createdAt).toLocaleString("en-IN")}</div>
+                  <div className="mt-2 text-sm whitespace-pre-line text-zinc-700">
+                    {[
+                      o.customerName || o.address?.fullName,
+                      o.customerPhone || o.address?.phone,
+                      o.address
+                        ? `${o.address.house}, ${o.address.street}, ${o.address.city}, ${o.address.state} – ${o.address.pinCode}`
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join("\n")}
+                  </div>
                 </div>
                 <div className="text-right text-sm">
                   <div>{ORDER_STATUS_LABEL[o.status as OrderStatus] || o.status}</div>

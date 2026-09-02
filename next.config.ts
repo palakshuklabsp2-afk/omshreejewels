@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   agentRules: false,
   serverExternalPackages: ["cloudinary", "@neondatabase/serverless", "razorpay", "bcryptjs"],
+  experimental: {
+    proxyClientMaxBodySize: "100mb",
+    serverActions: {
+      bodySizeLimit: "100mb",
+    },
+  },
   images: {
     unoptimized: process.env.NODE_ENV !== "production",
     remotePatterns: [

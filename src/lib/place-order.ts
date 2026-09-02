@@ -40,7 +40,7 @@ export async function fulfillDraft(opts: {
     orderNumber,
     customerId: customer._id,
     customerName: customer.address.fullName || customer.name,
-    customerPhone: customer.phone,
+    customerPhone: customer.address.phone || customer.phone,
     address: customer.address,
     items: draft.items,
     subtotal: draft.subtotal,

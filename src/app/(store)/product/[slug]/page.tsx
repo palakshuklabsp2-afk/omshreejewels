@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/lib/data";
 import { optimizedImage } from "@/lib/images";
-import { formatInr, STORE } from "@/lib/utils";
+import { formatInr, productPricing, STORE } from "@/lib/utils";
 import { AddToCart } from "./add-to-cart";
 import { ProductGallery } from "@/components/product-gallery";
 import { BrandLogo } from "@/components/brand-logo";
@@ -37,7 +37,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     notFound();
   }
   if (!product) notFound();
-  const price = product.salePrice && product.salePrice < product.price ? product.salePrice : product.price;
+  const pricing = productPricing(product.price, product.salePrice);
   const images = product.images?.length ? product.images : ["/placeholder-jewellery.svg"];
   const category = typeof product.category === "object" ? product.category : undefined;
 
@@ -53,12 +53,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </Link>
         )}
         <h1 className="font-display text-4xl text-wine mt-2">{product.name}</h1>
-        <div className="mt-4 flex items-baseline gap-3">
-          <span className="text-2xl font-semibold text-crimson">{formatInr(price)}</span>
-          {product.salePrice && product.salePrice < product.price && (
-            <span className="line-through text-zinc-400">{formatInr(product.price)}</span>
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <span className="text-2xl font-semibold text-crimson">{formatInr(pricing.selling)}</span>
+          {pricing.discounted && (
+            <>
+              <span className="line-through text-zinc-400">{formatInr(pricing.mrp)}</span>
+              <span className="rounded-full bg-crimson text-white text-xs font-semibold px-3 py-1">
+                {pricing.percent}% OFF
+              </span>
+            </>
           )}
         </div>
+        {pricing.discounted ? (
+          <p className="mt-2 text-sm text-crimson">You save {formatInr(pricing.saved)} on this piece</p>
+        ) : null}
         <p className="mt-6 text-zinc-700 whitespace-pre-line">{product.description}</p>
         <p className="mt-4 text-sm">Stock: {product.stock > 0 ? `${product.stock} available` : "Out of stock"}</p>
         <AddToCart
@@ -66,7 +74,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             productId: String(product._id),
             name: product.name,
             image: optimizedImage(images[0]),
-            price,
+            price: pricing.selling,
             stock: product.stock,
           }}
         />

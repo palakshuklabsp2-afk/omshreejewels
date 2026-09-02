@@ -23,20 +23,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     featured?: boolean;
     isActive?: boolean;
   } = {};
-  for (const key of [
-    "name",
-    "description",
-    "category",
-    "price",
-    "salePrice",
-    "images",
-    "stock",
-    "sku",
-    "tags",
-    "featured",
-    "isActive",
-  ] as const) {
-    if (body[key] !== undefined) allowed[key] = body[key];
+  if (typeof body.name === "string") allowed.name = body.name;
+  if (typeof body.description === "string") allowed.description = body.description;
+  if (typeof body.category === "string") allowed.category = body.category;
+  if (body.price !== undefined) allowed.price = Number(body.price);
+  if (body.salePrice !== undefined) {
+    allowed.salePrice = body.salePrice === null || body.salePrice === "" ? null : Number(body.salePrice);
+  }
+  if (Array.isArray(body.images)) allowed.images = body.images;
+  if (body.stock !== undefined) allowed.stock = Number(body.stock);
+  if (typeof body.sku === "string") allowed.sku = body.sku;
+  if (Array.isArray(body.tags)) allowed.tags = body.tags;
+  if (typeof body.featured === "boolean") allowed.featured = body.featured;
+  if (typeof body.isActive === "boolean") allowed.isActive = body.isActive;
+  if (allowed.price != null && (!Number.isFinite(allowed.price) || allowed.price <= 0)) {
+    return NextResponse.json({ error: "Enter a valid price in rupees" }, { status: 400 });
   }
   if (allowed.featured === true && !(await canFeatureProduct(id))) {
     return NextResponse.json({ error: "Homepage can feature a maximum of 20 products" }, { status: 400 });

@@ -4,7 +4,7 @@ import { getCustomerSession } from "@/lib/session";
 import { connectDb } from "@/lib/db";
 import { createPaymentDraft, getCustomerById, productsByIds } from "@/lib/data";
 import { getRazorpay } from "@/lib/razorpay";
-import { COD_ADVANCE } from "@/lib/utils";
+import { COD_ADVANCE, productPricing } from "@/lib/utils";
 import { isId } from "@/lib/id";
 import { rateLimit } from "@/lib/rate-limit";
 import { demoPaymentsAllowed } from "@/lib/place-order";
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     if (!p || p.stock < line.qty) {
       return NextResponse.json({ error: "A product is out of stock" }, { status: 400 });
     }
-    const price = p.salePrice && p.salePrice < p.price ? p.salePrice : p.price;
+    const price = productPricing(p.price, p.salePrice).selling;
     subtotal += price * line.qty;
     items.push({
       productId: p._id,

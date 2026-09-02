@@ -21,7 +21,9 @@ const schema = z.object({
   description: z.string().optional(),
   category: z.string(),
   images: z.array(z.string().min(1)).min(1),
-  stock: z.number().int().min(0),
+  stock: z.coerce.number().int().min(0),
+  price: z.coerce.number().positive(),
+  salePrice: z.number().positive().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

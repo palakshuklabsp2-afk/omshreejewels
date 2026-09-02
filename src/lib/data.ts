@@ -1,16 +1,25 @@
 import { connectDb, getSql } from "@/lib/db";
-import { DEFAULT_HOMEPAGE_NECKLACE_IMAGE, HOME_FEATURED_LIMIT, PAGE_SIZE } from "@/lib/utils";
+import {
+  DEFAULT_HOMEPAGE_NECKLACE_IMAGE,
+  HOME_FEATURED_LIMIT,
+  PAGE_SIZE,
+  parseAddress,
+  type DeliveryAddress,
+} from "@/lib/utils";
 import { isId } from "@/lib/id";
 
-export type Address = {
-  fullName: string;
-  phone: string;
-  house: string;
-  street: string;
-  city: string;
-  state: string;
-  pinCode: string;
-};
+export type Address = DeliveryAddress;
+
+function jsonValue(raw: unknown) {
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as unknown;
+    } catch {
+      return raw;
+    }
+  }
+  return raw;
+}
 
 function num(v: unknown, fallback = 0) {
   const n = Number(v);
@@ -60,11 +69,12 @@ export function mapProduct(row: Record<string, unknown>) {
 }
 
 export function mapCustomer(row: Record<string, unknown>) {
+  const address = parseAddress(row.address);
   return {
     _id: String(row.id),
-    phone: String(row.phone),
-    name: String(row.name || ""),
-    address: (row.address as Address | null) || null,
+    phone: String(row.phone || address?.phone || ""),
+    name: String(row.name || address?.fullName || ""),
+    address,
     addressLocked: Boolean(row.address_locked),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -72,15 +82,20 @@ export function mapCustomer(row: Record<string, unknown>) {
 }
 
 export function mapOrder(row: Record<string, unknown>) {
-  const items = Array.isArray(row.items) ? row.items : [];
-  const timeline = Array.isArray(row.timeline) ? row.timeline : [];
+  const itemsRaw = jsonValue(row.items);
+  const timelineRaw = jsonValue(row.timeline);
+  const items = Array.isArray(itemsRaw) ? itemsRaw : [];
+  const timeline = Array.isArray(timelineRaw) ? timelineRaw : [];
+  const address = parseAddress(row.address) || parseAddress(row.join_address);
+  const customerName = String(row.customer_name || address?.fullName || row.join_name || "").trim();
+  const customerPhone = String(row.customer_phone || address?.phone || row.join_phone || "").trim();
   return {
     _id: String(row.id),
     orderNumber: String(row.order_number),
     customer: String(row.customer_id),
-    customerName: String(row.customer_name || ""),
-    customerPhone: String(row.customer_phone || ""),
-    address: row.address as Address,
+    customerName,
+    customerPhone,
+    address: address || null,
     items: items as { productId: string; name: string; image: string; qty: number; price: number }[],
     subtotal: num(row.subtotal),
     paymentMethod: String(row.payment_method),
@@ -262,7 +277,8 @@ export async function createProduct(input: {
   category: string;
   images: string[];
   stock: number;
-  price?: number;
+  price: number;
+  salePrice?: number | null;
   isActive?: boolean;
 }) {
   await connectDb();
@@ -270,7 +286,7 @@ export async function createProduct(input: {
     INSERT INTO products (name, slug, description, category_id, price, sale_price, images, stock, sku, tags, featured, is_active)
     VALUES (
       ${input.name}, ${input.slug}, ${input.description || ""}, ${input.category},
-      ${input.price ?? 0}, ${null}, ${input.images}, ${input.stock}, ${""}, ${[] as string[]},
+      ${input.price}, ${input.salePrice ?? null}, ${input.images}, ${input.stock}, ${""}, ${[] as string[]},
       ${false}, ${input.isActive ?? true}
     )
     RETURNING *
@@ -539,13 +555,25 @@ export async function markDraftUsed(id: string) {
 
 export async function getOrderByRazorpay(razorpayOrderId: string) {
   await connectDb();
-  const rows = await getSql()`SELECT * FROM orders WHERE razorpay_order_id = ${razorpayOrderId} LIMIT 1`;
+  const rows = await getSql()`
+    SELECT o.*, c.name AS join_name, c.phone AS join_phone, c.address AS join_address
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customer_id
+    WHERE o.razorpay_order_id = ${razorpayOrderId}
+    LIMIT 1
+  `;
   return rows[0] ? mapOrder(rows[0]) : null;
 }
 
 export async function getOrderByNumber(orderNumber: string) {
   await connectDb();
-  const rows = await getSql()`SELECT * FROM orders WHERE order_number = ${orderNumber} LIMIT 1`;
+  const rows = await getSql()`
+    SELECT o.*, c.name AS join_name, c.phone AS join_phone, c.address AS join_address
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customer_id
+    WHERE o.order_number = ${orderNumber}
+    LIMIT 1
+  `;
   return rows[0] ? mapOrder(rows[0]) : null;
 }
 
@@ -588,8 +616,11 @@ export async function listOrders(page: number) {
   const limit = PAGE_SIZE;
   const offset = (page - 1) * limit;
   const rows = await getSql()`
-    SELECT *, count(*) OVER() AS total_count FROM orders
-    ORDER BY created_at DESC
+    SELECT o.*, count(*) OVER() AS total_count,
+      c.name AS join_name, c.phone AS join_phone, c.address AS join_address
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customer_id
+    ORDER BY o.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
   const total = rows[0] ? num(rows[0].total_count) : 0;
@@ -598,7 +629,14 @@ export async function listOrders(page: number) {
 
 export async function listCustomerOrders(customerId: string) {
   await connectDb();
-  const rows = await getSql()`SELECT * FROM orders WHERE customer_id = ${customerId} ORDER BY created_at DESC LIMIT 50`;
+  const rows = await getSql()`
+    SELECT o.*, c.name AS join_name, c.phone AS join_phone, c.address AS join_address
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customer_id
+    WHERE o.customer_id = ${customerId}
+    ORDER BY o.created_at DESC
+    LIMIT 50
+  `;
   return rows.map(mapOrder);
 }
 
@@ -608,10 +646,16 @@ export async function updateOrderStatus(id: string, status: string) {
   if (!current[0]) return null;
   const timeline = Array.isArray(current[0].timeline) ? current[0].timeline : [];
   timeline.push({ status, at: new Date().toISOString() });
-  const rows = await getSql()`
+  await getSql()`
     UPDATE orders SET status = ${status}, timeline = ${JSON.stringify(timeline)}::jsonb, updated_at = now()
     WHERE id = ${id}
-    RETURNING *
+  `;
+  const rows = await getSql()`
+    SELECT o.*, c.name AS join_name, c.phone AS join_phone, c.address AS join_address
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customer_id
+    WHERE o.id = ${id}
+    LIMIT 1
   `;
   return rows[0] ? mapOrder(rows[0]) : null;
 }
@@ -626,7 +670,13 @@ export async function getStats() {
   const [customers] = await sql`SELECT count(*)::int AS n FROM customers`;
   const [categories] = await sql`SELECT count(*)::int AS n FROM categories`;
   const [paid] = await sql`SELECT coalesce(sum(advance_paid), 0)::int AS total FROM orders WHERE payment_status IN ('paid', 'advance_paid')`;
-  const recentRows = await sql`SELECT * FROM orders ORDER BY created_at DESC LIMIT 8`;
+  const recentRows = await sql`
+    SELECT o.*, c.name AS join_name, c.phone AS join_phone, c.address AS join_address
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customer_id
+    ORDER BY o.created_at DESC
+    LIMIT 8
+  `;
   return {
     products: num(products?.n),
     orders: num(orders?.n),

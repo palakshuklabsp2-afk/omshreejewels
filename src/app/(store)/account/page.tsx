@@ -27,6 +27,9 @@ export default async function AccountPage() {
         status: o.status,
         subtotal: o.subtotal,
         remainingCod: o.remainingCod,
+        customerName: o.customerName,
+        customerPhone: o.customerPhone,
+        address: o.address || null,
         items: o.items.map((i) => ({ name: i.name || "", qty: i.qty, price: i.price })),
       }))}
     />
