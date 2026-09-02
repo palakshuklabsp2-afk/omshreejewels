@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { isValidIndianPhone } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 function LoginForm() {
   const [phone, setPhone] = useState("");
@@ -85,6 +86,7 @@ function LoginForm() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
+      <BrandLogo size="auth" className="mb-6" />
       <h1 className="font-display text-4xl text-wine">Phone OTP Login</h1>
       <p className="mt-2 text-sm text-zinc-600">
         Enter your 10-digit mobile number. A 6-digit OTP will appear on this screen — no SMS app and no Twilio.

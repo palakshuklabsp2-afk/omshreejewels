@@ -11,7 +11,8 @@ export const DEFAULT_HOMEPAGE_NECKLACE_IMAGE =
 export const STORE = {
   name: "OM SHREE JEWELS",
   legalName: "OM SHREE JEWELS",
-  tagline: "Elegance You Can Wear, Beauty You Can Own.",
+  tagline: "Unique Jewellery, Unique Products",
+  logo: "/brand-om-shree.png",
   rating: 4.9,
   phones: ["8959026300", "9926155200"],
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "918959026300",

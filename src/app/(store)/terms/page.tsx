@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { STORE } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const metadata: Metadata = { title: "Terms & Conditions" };
 
 export default function TermsPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 space-y-4">
+      <BrandLogo size="hero" />
       <h1 className="font-display text-4xl text-wine">Terms & Conditions</h1>
       <h2 className="text-2xl font-semibold text-crimson">🚫 NO RETURN</h2>
       <h2 className="text-2xl font-semibold text-crimson">🚫 NO EXCHANGE</h2>

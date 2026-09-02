@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ORDER_STATUS_LABEL, type OrderStatus } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 const STEPS: { key: OrderStatus; label: string }[] = [
   { key: "confirmed", label: "🟡 Order Confirmed" },
@@ -44,6 +45,7 @@ function TrackInner() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
+      <BrandLogo size="footer" className="mb-4" />
       <h1 className="font-display text-4xl text-wine">Track Order</h1>
       <p className="text-sm text-zinc-500 mt-2">Enter your order number, for example OMS-2026-000001.</p>
       <div className="mt-6 flex flex-col sm:flex-row gap-2">

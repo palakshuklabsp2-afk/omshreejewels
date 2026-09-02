@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminSession, clearAdminCookie } from "@/lib/session";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
   return (
     <div className="min-h-screen grid lg:grid-cols-[240px_1fr]">
       <aside className="bg-wine text-white p-6 space-y-4">
-        <div className="font-display text-2xl">OM SHREE JEWELS</div>
+        <BrandLogo size="footer" className="ring-1 ring-gold/30" />
         <p className="text-xs text-gold">Admin</p>
         <nav className="flex lg:flex-col gap-3 text-sm overflow-x-auto pb-2">
           {links.map(([href, label]) => (

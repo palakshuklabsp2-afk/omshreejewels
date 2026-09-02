@@ -669,6 +669,26 @@ export async function setHomepageHeroImage(url: string) {
   return value;
 }
 
+const HOMEPAGE_VIDEO_KEY = "homepage_video";
+
+export async function getHomepageVideo() {
+  await connectDb();
+  const rows = await getSql()`SELECT value FROM site_settings WHERE key = ${HOMEPAGE_VIDEO_KEY} LIMIT 1`;
+  const value = rows[0]?.value;
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+export async function setHomepageVideo(url: string) {
+  await connectDb();
+  const value = url.trim();
+  await getSql()`
+    INSERT INTO site_settings (key, value, updated_at)
+    VALUES (${HOMEPAGE_VIDEO_KEY}, ${value}, now())
+    ON CONFLICT (key) DO UPDATE SET value = excluded.value, updated_at = now()
+  `;
+  return value;
+}
+
 export async function removeDemoCatalog() {
   await connectDb();
   const demoSkus = Array.from({ length: 10 }, (_, i) => `OSB-${1000 + i}`);

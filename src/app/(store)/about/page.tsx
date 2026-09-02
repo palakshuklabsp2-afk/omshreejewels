@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { STORE } from "@/lib/utils";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 space-y-4">
+      <BrandLogo size="hero" />
       <h1 className="font-display text-4xl text-wine">About Us</h1>
       <p>
         {STORE.name} offers premium imitation jewellery and fashion accessories for customers across India.

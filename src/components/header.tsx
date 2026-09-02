@@ -6,6 +6,7 @@ import { Menu, Search, Heart, ShoppingBag, User, X, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { STORE } from "@/lib/utils";
 import { useCart } from "@/components/cart-provider";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function Header({
   loggedIn,
@@ -34,13 +35,20 @@ export function Header({
         🇮🇳 {STORE.shippingBanner}
       </div>
       <div className="glass border-b border-gold/20">
-        <div className="mx-auto max-w-7xl px-4 h-16 flex items-center gap-3">
-          <button className="lg:hidden p-2" onClick={() => setOpen(true)} aria-label="Open menu">
+        <div className="mx-auto max-w-7xl px-4 h-[4.5rem] flex items-center gap-2 sm:gap-3">
+          <button className="lg:hidden p-2 shrink-0" onClick={() => setOpen(true)} aria-label="Open menu">
             <Menu className="h-5 w-5 text-crimson" />
           </button>
-          <Link href="/" className="flex-1 lg:flex-none">
-            <div className="font-display text-xl sm:text-2xl tracking-wide text-crimson">OM SHREE</div>
-            <div className="text-[10px] tracking-[0.35em] text-gold -mt-1">JEWELS</div>
+          <Link href="/" className="shrink-0" aria-label={`${STORE.name} home`}>
+            <div className="font-display text-lg sm:text-2xl tracking-wide text-crimson leading-none">OM SHREE</div>
+            <div className="text-[9px] sm:text-[10px] tracking-[0.35em] text-gold mt-0.5">JEWELS</div>
+          </Link>
+          <Link
+            href="/"
+            className="flex-1 flex items-center justify-center min-w-0 px-1 md:flex-none md:justify-start"
+            aria-label={`${STORE.name} logo`}
+          >
+            <BrandLogo size="header" priority />
           </Link>
           <form onSubmit={onSearch} className="hidden md:flex flex-1 max-w-xl mx-6">
             <div className="flex w-full rounded-full border border-crimson/15 bg-white overflow-hidden">
@@ -55,7 +63,7 @@ export function Header({
               </button>
             </div>
           </form>
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <a href={`tel:${STORE.phones[0]}`} className="hidden sm:flex p-2 text-crimson" aria-label="Call">
               <Phone className="h-5 w-5" />
             </a>
@@ -95,7 +103,7 @@ export function Header({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <span className="font-display text-xl text-crimson">Menu</span>
+              <BrandLogo size="header" />
               <button onClick={() => setOpen(false)} aria-label="Close">
                 <X />
               </button>

@@ -5,6 +5,7 @@ import { optimizedImage } from "@/lib/images";
 import { formatInr, STORE } from "@/lib/utils";
 import { AddToCart } from "./add-to-cart";
 import { ProductGallery } from "@/components/product-gallery";
+import { BrandLogo } from "@/components/brand-logo";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <div className="mx-auto max-w-6xl px-4 py-10 grid lg:grid-cols-2 gap-10">
       <ProductGallery images={images} name={product.name} />
       <div>
+        <BrandLogo size="footer" className="mb-3" />
         <p className="text-gold tracking-widest text-xs">{STORE.name}</p>
         {category?.slug && (
           <Link href={`/category/${category.slug}`} className="text-sm text-crimson mt-2 inline-block">

@@ -18,12 +18,15 @@ const sans = Manrope({
 
 export const metadata: Metadata = {
   title: {
-    default: `${STORE.name} | Imitation Jewellery & Fashion Accessories`,
+    default: `${STORE.name} | Unique Jewellery, Unique Products`,
     template: `%s | ${STORE.name}`,
   },
-  description:
-    `Premium imitation jewellery and fashion accessories from ${STORE.name}, Baloda Bazar. All India shipping. Rated 4.9 on Google.`,
+  description: `Premium imitation jewellery and fashion accessories from ${STORE.name}, Baloda Bazar. Unique jewellery, unique products. All India shipping. Rated 4.9 on Google.`,
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  icons: {
+    icon: [{ url: "/brand-om-shree.png", type: "image/png" }],
+    apple: [{ url: "/brand-om-shree.png" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

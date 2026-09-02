@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function WishlistPage() {
   const [items, setItems] = useState<ProductCardData[]>([]);
@@ -14,6 +15,7 @@ export default function WishlistPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
+      <BrandLogo size="footer" className="mb-4" />
       <h1 className="font-display text-4xl text-wine">Wishlist</h1>
       {items.length === 0 ? (
         <p className="mt-6">

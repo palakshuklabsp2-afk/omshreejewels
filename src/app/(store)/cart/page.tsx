@@ -4,11 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/cart-provider";
 import { formatInr } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function CartPage() {
   const { items, setQty, remove, subtotal } = useCart();
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
+      <BrandLogo size="footer" className="mb-4" />
       <h1 className="font-display text-4xl text-wine">Your Cart</h1>
       {items.length === 0 ? (
         <p className="mt-6">

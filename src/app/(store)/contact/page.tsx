@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { STORE } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -10,7 +11,8 @@ export default function ContactPage() {
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STORE.mapsQuery)}`;
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="font-display text-4xl text-wine">Contact Us</h1>
+      <BrandLogo size="hero" />
+      <h1 className="font-display text-4xl text-wine mt-6">Contact Us</h1>
       <p className="mt-2 text-zinc-600">Click a number to call. WhatsApp is also available from the floating button.</p>
       <div className="mt-6 rounded-3xl bg-white border border-gold/20 p-6 space-y-3 shadow-sm">
         {STORE.phones.map((p) => (

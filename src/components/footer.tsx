@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { STORE } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function Footer({ categories }: { categories: { name: string; slug: string }[] }) {
   return (
     <footer className="mt-16 bg-wine text-rose-50">
       <div className="mx-auto max-w-7xl px-4 py-12 grid gap-10 md:grid-cols-4">
         <div>
-          <div className="font-display text-2xl">{STORE.name}</div>
+          <BrandLogo size="footer" className="ring-1 ring-gold/30" />
+          <div className="font-display text-2xl mt-4">{STORE.name}</div>
           <p className="mt-3 text-xs tracking-widest text-gold">⭐ Rated {STORE.rating} on Google</p>
           <p className="mt-3 text-sm">🇮🇳 {STORE.shippingBanner}</p>
         </div>

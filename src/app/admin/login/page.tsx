@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("");
@@ -45,6 +46,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen hero-glow grid place-items-center px-4">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+        <BrandLogo size="auth" className="mb-4" />
         <h1 className="font-display text-3xl text-wine">Admin Portal</h1>
         <p className="text-sm text-zinc-500 mt-1">OM SHREE JEWELS</p>
         <form

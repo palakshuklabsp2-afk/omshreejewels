@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, ShieldCheck, Truck, Star, Lock, Gem } from "lucide-react";
-import { getActiveCategories, getFeaturedProducts, getHomepageNecklaceImage } from "@/lib/queries";
+import { getActiveCategories, getFeaturedProducts, getHomepageNecklaceImage, getHomepageShowreel } from "@/lib/queries";
 import { ProductCard } from "@/components/product-card";
+import { BrandLogo } from "@/components/brand-logo";
+import { HomepageShowreel } from "@/components/homepage-showreel";
 import { DEFAULT_HOMEPAGE_NECKLACE_IMAGE, STORE } from "@/lib/utils";
 import { optimizedImage } from "@/lib/images";
 
@@ -12,11 +14,13 @@ export default async function HomePage() {
   let categories: Awaited<ReturnType<typeof getActiveCategories>> = [];
   let products: Awaited<ReturnType<typeof getFeaturedProducts>> = [];
   let heroImage = DEFAULT_HOMEPAGE_NECKLACE_IMAGE;
+  let showreel = "";
   try {
-    [categories, products, heroImage] = await Promise.all([
+    [categories, products, heroImage, showreel] = await Promise.all([
       getActiveCategories(),
       getFeaturedProducts(),
       getHomepageNecklaceImage(),
+      getHomepageShowreel(),
     ]);
   } catch {
     /* DB not configured yet */
@@ -29,8 +33,9 @@ export default async function HomePage() {
       <section className="hero-glow text-white overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:py-24 grid lg:grid-cols-2 gap-10 items-center">
           <div className="fade-up">
-            <p className="text-gold tracking-[0.35em] text-[11px] sm:text-xs mb-3">IMITATION JEWELLERY · INDIA</p>
-            <h1 className="font-display text-5xl sm:text-7xl leading-[0.95]">{STORE.name}</h1>
+            <p className="text-gold tracking-[0.35em] text-[11px] sm:text-xs mb-4">IMITATION JEWELLERY · INDIA</p>
+            <BrandLogo size="hero" priority className="ring-1 ring-gold/40" />
+            <h1 className="sr-only">{STORE.name}</h1>
             <p className="mt-5 text-lg sm:text-xl text-rose-50 max-w-xl">{STORE.tagline}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/shop" className="btn-primary !bg-white !text-crimson">
@@ -68,6 +73,8 @@ export default async function HomePage() {
           <p className="text-sm text-zinc-600 text-center">{STORE.name}</p>
         </div>
       </section>
+
+      {showreel ? <HomepageShowreel src={showreel} /> : null}
 
       <section className="mx-auto max-w-7xl px-4 mt-16">
         <div className="flex items-end justify-between gap-4 mb-6">

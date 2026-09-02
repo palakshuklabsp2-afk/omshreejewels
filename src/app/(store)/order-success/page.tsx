@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { formatInr } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 
 function SuccessInner() {
   const sp = useSearchParams();
@@ -13,6 +14,7 @@ function SuccessInner() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 text-center">
+      <BrandLogo size="auth" className="mb-6" />
       <h1 className="font-display text-4xl text-wine">🎉 Thank you for ordering from us!</h1>
       <p className="mt-4">Your order has been successfully placed.</p>
       {order && <p className="mt-2 font-semibold">Order Number: {order}</p>}

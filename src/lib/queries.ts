@@ -1,4 +1,10 @@
-import { getHomepageHeroImage, listActiveCategories, listFeaturedProducts, searchProducts as search } from "@/lib/data";
+import {
+  getHomepageHeroImage,
+  getHomepageVideo,
+  listActiveCategories,
+  listFeaturedProducts,
+  searchProducts as search,
+} from "@/lib/data";
 
 export async function getActiveCategories() {
   return listActiveCategories();
@@ -10,6 +16,10 @@ export async function getFeaturedProducts() {
 
 export async function getHomepageNecklaceImage() {
   return getHomepageHeroImage();
+}
+
+export async function getHomepageShowreel() {
+  return getHomepageVideo();
 }
 
 export async function searchProducts(params: {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getActiveCategories, searchProducts } from "@/lib/queries";
 import { ProductCard } from "@/components/product-card";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export default async function ShopPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
+      <BrandLogo size="footer" className="mb-4" />
       <h1 className="font-display text-4xl text-wine">Shop</h1>
       <p className="text-sm text-zinc-500 mt-1">🇮🇳 All over India shipping available</p>
       <form className="mt-6 grid sm:grid-cols-2 lg:grid-cols-6 gap-3">

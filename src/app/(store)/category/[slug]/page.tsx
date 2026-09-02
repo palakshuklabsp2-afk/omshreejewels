@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCategoryBySlug } from "@/lib/data";
 import { searchProducts } from "@/lib/queries";
 import { ProductCard } from "@/components/product-card";
+import { BrandLogo } from "@/components/brand-logo";
 import { STORE } from "@/lib/utils";
 import Link from "next/link";
 
@@ -44,6 +45,7 @@ export default async function CategoryPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
+      <BrandLogo size="footer" className="mb-4" />
       <h1 className="font-display text-4xl text-wine">{category.name}</h1>
       <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
         {result.items.map((p) => (

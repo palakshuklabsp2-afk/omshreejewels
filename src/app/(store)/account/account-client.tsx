@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { formatInr, ORDER_STATUS_LABEL, type OrderStatus } from "@/lib/utils";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 type Props = {
   customer: {
@@ -84,6 +85,7 @@ export function AccountClient({ customer, orders }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-8">
+      <BrandLogo size="footer" />
       <div className="flex justify-between items-center">
         <h1 className="font-display text-4xl text-wine">My Account</h1>
         <button onClick={logout} className="btn-ghost">

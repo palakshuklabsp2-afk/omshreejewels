@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useCart } from "@/components/cart-provider";
 import { COD_ADVANCE, formatInr, STORE } from "@/lib/utils";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 
 declare global {
   interface Window {
@@ -164,6 +165,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
+      <BrandLogo size="footer" className="mb-4" />
       <h1 className="font-display text-4xl text-wine">Checkout</h1>
       <p className="text-sm text-zinc-500 mt-1">🇮🇳 All over India shipping available</p>
       <div className="mt-6 rounded-3xl bg-white border border-gold/20 p-6 space-y-4 shadow-sm">
@@ -197,8 +199,7 @@ export default function CheckoutPage() {
           I have read and agree to the Terms & Conditions, including the No Return and No Exchange policy.
         </label>
         <p className="text-xs text-zinc-500">
-          Pay now: {formatInr(payable)}. Live Razorpay is used when keys are set; until then checkout uses a local demo
-          payment so you can test the full order flow.
+          Pay now: {formatInr(payable)}. Live Razorpay checkout is enabled.
         </p>
         <button className="btn-primary w-full" onClick={pay} disabled={paying}>
           {paying ? "Please wait…" : `Pay ${formatInr(payable)}`}
