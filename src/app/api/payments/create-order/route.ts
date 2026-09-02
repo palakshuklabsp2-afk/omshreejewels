@@ -3,16 +3,26 @@ import { z } from "zod";
 import { getCustomerSession } from "@/lib/session";
 import { connectDb } from "@/lib/db";
 import { createPaymentDraft, getCustomerById, productsByIds } from "@/lib/data";
-import { getRazorpay } from "@/lib/razorpay";
-import { COD_ADVANCE, productPricing } from "@/lib/utils";
+import { createRazorpayOrder, isRazorpayConfigured } from "@/lib/razorpay";
+import { COD_ADVANCE, MIN_ORDER_AMOUNT, productPricing } from "@/lib/utils";
 import { isId } from "@/lib/id";
 import { rateLimit } from "@/lib/rate-limit";
 import { demoPaymentsAllowed } from "@/lib/place-order";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const itemSchema = z.object({
   productId: z.string(),
   qty: z.number().int().min(1).max(20),
 });
+
+function fallbackDemo() {
+  return {
+    demo: true as const,
+    razorpayOrderId: `demo_order_${Date.now()}`,
+  };
+}
 
 export async function POST(req: Request) {
   const session = await getCustomerSession();
@@ -54,27 +64,56 @@ export async function POST(req: Request) {
     });
   }
 
-  const payable = parsed.data.method === "cod" ? Math.min(COD_ADVANCE, subtotal) : subtotal;
-  let razorpayOrderId: string;
-  let amountPaise = Math.round(payable * 100);
-  let demo = false;
-  let keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || "";
+  if (subtotal < MIN_ORDER_AMOUNT) {
+    return NextResponse.json(
+      { error: `Minimum order is ₹${MIN_ORDER_AMOUNT}. Add more items to continue.` },
+      { status: 400 },
+    );
+  }
 
-  try {
-    const razorpay = getRazorpay();
-    const order = await razorpay.orders.create({
-      amount: amountPaise,
-      currency: "INR",
-      receipt: `osb_${Date.now()}`,
-    });
-    razorpayOrderId = order.id;
-    amountPaise = Number(order.amount);
-  } catch {
+  const payable = parsed.data.method === "cod" ? Math.min(COD_ADVANCE, subtotal) : subtotal;
+  let amountPaise = Math.max(100, Math.round(payable * 100));
+  let demo = false;
+  let keyId = "";
+  let razorpayOrderId = "";
+
+  if (!isRazorpayConfigured()) {
     if (!demoPaymentsAllowed()) {
-      return NextResponse.json({ error: "Payment gateway is not configured yet" }, { status: 503 });
+      return NextResponse.json(
+        {
+          error:
+            "Razorpay is not set on this server. Add RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, and NEXT_PUBLIC_RAZORPAY_KEY_ID in the host environment (Vercel/hosting), then redeploy.",
+        },
+        { status: 503 },
+      );
     }
-    demo = true;
-    razorpayOrderId = `demo_order_${Date.now()}`;
+    const fallback = fallbackDemo();
+    demo = fallback.demo;
+    razorpayOrderId = fallback.razorpayOrderId;
+  } else {
+    try {
+      const order = await createRazorpayOrder({
+        amountPaise,
+        receipt: `osb_${Date.now()}`,
+      });
+      razorpayOrderId = order.id;
+      amountPaise = order.amount;
+      keyId = order.keyId;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Razorpay payment could not be started";
+      console.error("[payments/create-order]", message);
+      if (!demoPaymentsAllowed()) {
+        return NextResponse.json(
+          {
+            error: `Payment gateway error: ${message}. Use the Razorpay Key Id and Key Secret from the same mode (test or live).`,
+          },
+          { status: 503 },
+        );
+      }
+      const fallback = fallbackDemo();
+      demo = fallback.demo;
+      razorpayOrderId = fallback.razorpayOrderId;
+    }
   }
 
   const draft = await createPaymentDraft({

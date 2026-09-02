@@ -126,6 +126,7 @@ export function isValidIndianPhone(value: string) {
 export const PAGE_SIZE = 24;
 export const HOME_FEATURED_LIMIT = 20;
 export const COD_ADVANCE = 200;
+export const MIN_ORDER_AMOUNT = 500;
 export const ORDER_STATUSES = [
   "confirmed",
   "processing",

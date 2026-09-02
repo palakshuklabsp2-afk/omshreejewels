@@ -17,6 +17,7 @@ export default function TermsPage() {
       </p>
       <p>Please check product images, descriptions, prices, and your delivery address carefully before placing an order.</p>
       <p>Orders are confirmed only after successful Razorpay payment (full payment or ₹200 COD advance).</p>
+      <p>The minimum order value is ₹500. Orders below ₹500 cannot be placed.</p>
       <p>Cash on Delivery requires a non-refundable-process ₹200 advance. Remaining amount is collected at delivery.</p>
       <p>By placing an order you agree to these terms, including the No Return and No Exchange policy.</p>
     </article>

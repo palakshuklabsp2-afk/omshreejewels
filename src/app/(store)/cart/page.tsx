@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/cart-provider";
-import { formatInr } from "@/lib/utils";
+import { formatInr, MIN_ORDER_AMOUNT } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand-logo";
 
 export default function CartPage() {
@@ -42,11 +42,24 @@ export default function CartPage() {
               <div className="font-semibold">{formatInr(item.price * item.qty)}</div>
             </div>
           ))}
-          <div className="flex justify-between items-center pt-4">
-            <div className="text-lg font-semibold">Total {formatInr(subtotal)}</div>
-            <Link href="/checkout" className="btn-primary">
-              Checkout
-            </Link>
+          <div className="pt-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <div className="text-lg font-semibold">Total {formatInr(subtotal)}</div>
+              {subtotal >= MIN_ORDER_AMOUNT ? (
+                <Link href="/checkout" className="btn-primary">
+                  Checkout
+                </Link>
+              ) : (
+                <button type="button" className="btn-primary opacity-50 cursor-not-allowed" disabled>
+                  Checkout
+                </button>
+              )}
+            </div>
+            <p className={subtotal >= MIN_ORDER_AMOUNT ? "text-sm text-zinc-500" : "text-sm text-crimson"}>
+              {subtotal >= MIN_ORDER_AMOUNT
+                ? `Minimum order ${formatInr(MIN_ORDER_AMOUNT)} met.`
+                : `Minimum order is ${formatInr(MIN_ORDER_AMOUNT)}. Add ${formatInr(MIN_ORDER_AMOUNT - subtotal)} more to checkout.`}
+            </p>
           </div>
         </div>
       )}

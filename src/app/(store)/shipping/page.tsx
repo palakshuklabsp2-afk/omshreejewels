@@ -14,6 +14,7 @@ export default function ShippingPage() {
         {STORE.name} ships imitation jewellery and fashion accessories across India. Delivery timelines vary by
         destination and courier partner.
       </p>
+      <p>The minimum order value is ₹500.</p>
       <p>You can track your order anytime using your Order Number on the Track Order page.</p>
     </article>
   );

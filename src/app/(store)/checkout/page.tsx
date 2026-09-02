@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCart } from "@/components/cart-provider";
-import { COD_ADVANCE, formatInr, STORE } from "@/lib/utils";
+import { COD_ADVANCE, MIN_ORDER_AMOUNT, formatInr, STORE } from "@/lib/utils";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 
 declare global {
   interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void;
+      on: (event: string, handler: (response: { error?: { description?: string } }) => void) => void;
+    };
   }
 }
 
@@ -40,10 +43,15 @@ export default function CheckoutPage() {
     };
   }, [router]);
 
+  const belowMinimum = subtotal < MIN_ORDER_AMOUNT;
   const payable = method === "cod" ? Math.min(COD_ADVANCE, subtotal) : subtotal;
   const remaining = method === "cod" ? Math.max(0, subtotal - COD_ADVANCE) : 0;
 
   async function pay() {
+    if (belowMinimum) {
+      toast.error(`Minimum order is ${formatInr(MIN_ORDER_AMOUNT)}. Add more items to your cart.`);
+      return;
+    }
     if (!terms) {
       toast.error("Please accept Terms & Conditions including No Return / No Exchange");
       return;
@@ -100,10 +108,16 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!data.keyId) {
+      setPaying(false);
+      toast.error("Payment key is missing. Add NEXT_PUBLIC_RAZORPAY_KEY_ID on the server.");
+      return;
+    }
+
     const Razorpay = window.Razorpay;
     if (!Razorpay) {
       setPaying(false);
-      toast.error("Payment gateway is loading. Try again.");
+      toast.error("Payment gateway is loading. Wait a moment and tap Pay again.");
       return;
     }
 
@@ -114,6 +128,14 @@ export default function CheckoutPage() {
       name: STORE.name,
       description: method === "cod" ? "₹200 COD Advance" : "Order payment",
       order_id: data.razorpayOrderId,
+      prefill: {
+        name: me?.name || "",
+        contact: me?.phone || "",
+      },
+      theme: { color: "#9b1b30" },
+      modal: {
+        ondismiss: () => setPaying(false),
+      },
       handler: async (response: {
         razorpay_order_id: string;
         razorpay_payment_id: string;
@@ -148,8 +170,11 @@ export default function CheckoutPage() {
         router.push(`/order-success?${qs.toString()}`);
       },
     });
+    rzp.on("payment.failed", (response) => {
+      setPaying(false);
+      toast.error(response.error?.description || "Payment failed. Try again.");
+    });
     rzp.open();
-    setPaying(false);
   }
 
   if (!items.length) {
@@ -170,6 +195,15 @@ export default function CheckoutPage() {
       <p className="text-sm text-zinc-500 mt-1">🇮🇳 All over India shipping available</p>
       <div className="mt-6 rounded-3xl bg-white border border-gold/20 p-6 space-y-4 shadow-sm">
         <div className="text-lg font-semibold">Total Amount: {formatInr(subtotal)}</div>
+        {belowMinimum ? (
+          <p className="text-sm text-crimson">
+            Minimum order is {formatInr(MIN_ORDER_AMOUNT)}. Add {formatInr(MIN_ORDER_AMOUNT - subtotal)} more in{" "}
+            <Link href="/shop" className="underline">
+              Shop
+            </Link>{" "}
+            to place this order.
+          </p>
+        ) : null}
         <label className="flex gap-2 items-center rounded-2xl border p-3">
           <input type="radio" checked={method === "online"} onChange={() => setMethod("online")} />
           Full Online Payment
@@ -201,8 +235,8 @@ export default function CheckoutPage() {
         <p className="text-xs text-zinc-500">
           Pay now: {formatInr(payable)}. Live Razorpay checkout is enabled.
         </p>
-        <button className="btn-primary w-full" onClick={pay} disabled={paying}>
-          {paying ? "Please wait…" : `Pay ${formatInr(payable)}`}
+        <button className="btn-primary w-full" onClick={pay} disabled={paying || belowMinimum}>
+          {paying ? "Please wait…" : belowMinimum ? `Minimum order ${formatInr(MIN_ORDER_AMOUNT)}` : `Pay ${formatInr(payable)}`}
         </button>
         <Link href="/terms" className="text-sm text-crimson">
           Read Terms & Conditions

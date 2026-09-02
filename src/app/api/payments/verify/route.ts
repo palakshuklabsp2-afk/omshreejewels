@@ -3,6 +3,9 @@ import { getCustomerSession } from "@/lib/session";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { fulfillDraft } from "@/lib/place-order";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const session = await getCustomerSession();
