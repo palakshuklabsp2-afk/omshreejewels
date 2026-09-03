@@ -6,8 +6,10 @@ import { optimizedImage } from "@/lib/images";
 
 export function ProductGallery({ images, name }: { images: string[]; name: string }) {
   const list = images.length ? images : ["/placeholder-jewellery.svg"];
+  const unique = [...new Set(list)];
   const [active, setActive] = useState(0);
-  const src = optimizedImage(list[active]);
+  const src = optimizedImage(unique[Math.min(active, unique.length - 1)]);
+  const showThumbs = unique.length > 1;
 
   return (
     <div className="grid gap-3">
@@ -21,20 +23,22 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           sizes="(max-width:1024px) 100vw, 50vw"
         />
       </div>
-      <div className="grid grid-cols-4 gap-2">
-        {list.slice(0, 8).map((img, i) => (
-          <button
-            key={`${img}-${i}`}
-            type="button"
-            onClick={() => setActive(i)}
-            className={`relative aspect-square rounded-xl overflow-hidden border ${
-              i === active ? "border-crimson ring-2 ring-gold/40" : "border-crimson/10"
-            }`}
-          >
-            <Image src={optimizedImage(img)} alt="" fill className="object-cover" sizes="120px" />
-          </button>
-        ))}
-      </div>
+      {showThumbs ? (
+        <div className="grid grid-cols-4 gap-2">
+          {unique.slice(0, 8).map((img, i) => (
+            <button
+              key={`${img}-${i}`}
+              type="button"
+              onClick={() => setActive(i)}
+              className={`relative aspect-square rounded-xl overflow-hidden border ${
+                i === active ? "border-crimson ring-2 ring-gold/40" : "border-crimson/10"
+              }`}
+            >
+              <Image src={optimizedImage(img)} alt="" fill className="object-cover" sizes="120px" />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
