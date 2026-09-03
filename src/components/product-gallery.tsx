@@ -13,13 +13,14 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
 
   return (
     <div className="grid gap-3">
-      <div className="relative aspect-square rounded-3xl overflow-hidden bg-white border border-gold/20 shadow-lg">
+      <div className="rounded-3xl bg-white border border-gold/20 shadow-lg p-2 sm:p-3">
         <Image
           src={src}
           alt={name}
-          fill
+          width={1200}
+          height={1600}
           priority
-          className="object-cover"
+          className="w-full h-auto object-contain"
           sizes="(max-width:1024px) 100vw, 50vw"
         />
       </div>
@@ -30,11 +31,11 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
               key={`${img}-${i}`}
               type="button"
               onClick={() => setActive(i)}
-              className={`relative aspect-square rounded-xl overflow-hidden border ${
+              className={`relative aspect-square rounded-xl overflow-hidden border bg-white ${
                 i === active ? "border-crimson ring-2 ring-gold/40" : "border-crimson/10"
               }`}
             >
-              <Image src={optimizedImage(img)} alt="" fill className="object-cover" sizes="120px" />
+              <Image src={optimizedImage(img)} alt="" fill className="object-contain p-1" sizes="120px" />
             </button>
           ))}
         </div>
