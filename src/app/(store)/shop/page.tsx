@@ -80,6 +80,7 @@ export default async function ShopPage({
               salePrice: p.salePrice,
               images: p.images,
               stock: p.stock,
+              sizes: p.sizes,
             }}
           />
         ))}

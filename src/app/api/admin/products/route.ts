@@ -24,6 +24,7 @@ const schema = z.object({
   stock: z.coerce.number().int().min(0),
   price: z.coerce.number().positive(),
   salePrice: z.number().positive().nullable().optional(),
+  sizes: z.array(z.string().min(1)).optional(),
   isActive: z.boolean().optional(),
 });
 

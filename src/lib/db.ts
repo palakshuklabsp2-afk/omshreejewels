@@ -2,7 +2,7 @@ import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
 type Sql = NeonQueryFunction<false, false>;
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 const g = globalThis as unknown as { __osbNeon?: Sql; __osbSchemaVersion?: number };
 
 function databaseUrl() {
@@ -125,6 +125,16 @@ async function ensureSchema(sql: Sql) {
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone text NOT NULL DEFAULT ''`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS price integer NOT NULL DEFAULT 0`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS sale_price integer`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS sizes text[] NOT NULL DEFAULT '{}'`;
+  await sql`CREATE TABLE IF NOT EXISTS sizes (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL UNIQUE,
+    slug text NOT NULL UNIQUE,
+    sort_order integer NOT NULL DEFAULT 0,
+    is_active boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
 }
 
 export async function connectDb() {

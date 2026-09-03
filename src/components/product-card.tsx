@@ -15,6 +15,7 @@ export type ProductCardData = {
   price: number;
   salePrice?: number | null;
   images?: string[];
+  sizes?: string[];
   stock?: number;
 };
 
@@ -66,21 +67,30 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             </>
           )}
         </div>
+        {product.sizes?.length ? (
+          <p className="mt-1 text-[11px] text-zinc-500">Sizes: {product.sizes.join(", ")}</p>
+        ) : null}
         <div className="mt-3 flex gap-2">
-          <button
-            onClick={() =>
-              add({
-                productId: String(product._id),
-                name: product.name,
-                image: img,
-                price: pricing.selling,
-                stock: product.stock || 10,
-              })
-            }
-            className="flex-1 btn-primary text-xs py-2"
-          >
-            <ShoppingBag className="h-3.5 w-3.5" /> Add
-          </button>
+          {product.sizes?.length ? (
+            <Link href={`/product/${product.slug}`} className="flex-1 btn-primary text-xs py-2 justify-center">
+              <ShoppingBag className="h-3.5 w-3.5" /> Select size
+            </Link>
+          ) : (
+            <button
+              onClick={() =>
+                add({
+                  productId: String(product._id),
+                  name: product.name,
+                  image: img,
+                  price: pricing.selling,
+                  stock: product.stock || 10,
+                })
+              }
+              className="flex-1 btn-primary text-xs py-2"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" /> Add
+            </button>
+          )}
           <button onClick={wishlist} className="btn-ghost px-3" aria-label="Wishlist">
             <Heart className="h-4 w-4" />
           </button>

@@ -58,6 +58,7 @@ export function mapProduct(row: Record<string, unknown>) {
     price: num(row.price),
     salePrice: row.sale_price == null ? null : num(row.sale_price),
     images: strArr(row.images),
+    sizes: strArr(row.sizes),
     stock: num(row.stock),
     sku: String(row.sku || ""),
     tags: strArr(row.tags),
@@ -170,14 +171,78 @@ export async function deleteCategory(id: string) {
   await getSql()`DELETE FROM categories WHERE id = ${id}`;
 }
 
-export async function slugTaken(table: "categories" | "products", slug: string) {
+export async function slugTaken(table: "categories" | "products" | "sizes", slug: string) {
   await connectDb();
   if (table === "categories") {
     const rows = await getSql()`SELECT id FROM categories WHERE slug = ${slug} LIMIT 1`;
     return rows.length > 0;
   }
+  if (table === "sizes") {
+    const rows = await getSql()`SELECT id FROM sizes WHERE slug = ${slug} LIMIT 1`;
+    return rows.length > 0;
+  }
   const rows = await getSql()`SELECT id FROM products WHERE slug = ${slug} LIMIT 1`;
   return rows.length > 0;
+}
+
+export function mapSize(row: Record<string, unknown>) {
+  return {
+    _id: String(row.id),
+    name: String(row.name),
+    slug: String(row.slug),
+    sortOrder: num(row.sort_order),
+    isActive: Boolean(row.is_active),
+  };
+}
+
+export async function listAllSizes() {
+  await connectDb();
+  const rows = await getSql()`SELECT * FROM sizes ORDER BY sort_order ASC, name ASC`;
+  return rows.map(mapSize);
+}
+
+export async function listActiveSizes() {
+  await connectDb();
+  const rows = await getSql()`SELECT * FROM sizes WHERE is_active = true ORDER BY sort_order ASC, name ASC`;
+  return rows.map(mapSize);
+}
+
+export async function getSizeById(id: string) {
+  await connectDb();
+  const rows = await getSql()`SELECT * FROM sizes WHERE id = ${id} LIMIT 1`;
+  return rows[0] ? mapSize(rows[0]) : null;
+}
+
+export async function createSize(input: { name: string; slug: string; isActive?: boolean; sortOrder?: number }) {
+  await connectDb();
+  const rows = await getSql()`
+    INSERT INTO sizes (name, slug, is_active, sort_order)
+    VALUES (${input.name}, ${input.slug}, ${input.isActive ?? true}, ${input.sortOrder ?? 0})
+    RETURNING *
+  `;
+  return mapSize(rows[0]);
+}
+
+export async function updateSize(id: string, input: { name?: string; slug?: string; isActive?: boolean; sortOrder?: number }) {
+  await connectDb();
+  const current = await getSizeById(id);
+  if (!current) return null;
+  const name = input.name ?? current.name;
+  const slug = input.slug ?? current.slug;
+  const isActive = input.isActive ?? current.isActive;
+  const sortOrder = input.sortOrder ?? current.sortOrder;
+  const rows = await getSql()`
+    UPDATE sizes SET name = ${name}, slug = ${slug}, is_active = ${isActive},
+      sort_order = ${sortOrder}, updated_at = now()
+    WHERE id = ${id}
+    RETURNING *
+  `;
+  return rows[0] ? mapSize(rows[0]) : null;
+}
+
+export async function deleteSize(id: string) {
+  await connectDb();
+  await getSql()`DELETE FROM sizes WHERE id = ${id}`;
 }
 
 export async function listFeaturedProducts() {
@@ -276,17 +341,19 @@ export async function createProduct(input: {
   description?: string;
   category: string;
   images: string[];
+  sizes?: string[];
   stock: number;
   price: number;
   salePrice?: number | null;
   isActive?: boolean;
 }) {
   await connectDb();
+  const sizes = (input.sizes || []).map((s) => s.trim()).filter(Boolean);
   const rows = await getSql()`
-    INSERT INTO products (name, slug, description, category_id, price, sale_price, images, stock, sku, tags, featured, is_active)
+    INSERT INTO products (name, slug, description, category_id, price, sale_price, images, sizes, stock, sku, tags, featured, is_active)
     VALUES (
       ${input.name}, ${input.slug}, ${input.description || ""}, ${input.category},
-      ${input.price}, ${input.salePrice ?? null}, ${input.images}, ${input.stock}, ${""}, ${[] as string[]},
+      ${input.price}, ${input.salePrice ?? null}, ${input.images}, ${sizes}, ${input.stock}, ${""}, ${[] as string[]},
       ${false}, ${input.isActive ?? true}
     )
     RETURNING *
@@ -301,6 +368,7 @@ export async function updateProduct(
     description?: string;
     category?: string;
     images?: string[];
+    sizes?: string[];
     stock?: number;
     featured?: boolean;
     isActive?: boolean;
@@ -314,12 +382,14 @@ export async function updateProduct(
   const current = await getProductById(id);
   if (!current) return null;
   const categoryId = typeof current.category === "string" ? current.category : current.category._id;
+  const sizes = input.sizes ?? current.sizes;
   const rows = await getSql()`
     UPDATE products SET
       name = ${input.name ?? current.name},
       description = ${input.description ?? current.description},
       category_id = ${input.category ?? categoryId},
       images = ${input.images ?? current.images},
+      sizes = ${sizes},
       stock = ${input.stock ?? current.stock},
       featured = ${input.featured ?? current.featured},
       is_active = ${input.isActive ?? current.isActive},

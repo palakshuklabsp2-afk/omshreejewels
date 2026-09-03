@@ -15,6 +15,7 @@ export async function GET() {
       price: prod.price,
       salePrice: prod.salePrice,
       images: prod.images,
+      sizes: prod.sizes,
       stock: prod.stock,
     })),
   });

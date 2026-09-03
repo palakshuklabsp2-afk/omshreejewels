@@ -10,20 +10,25 @@ export type CartItem = {
   price: number;
   qty: number;
   stock: number;
+  size?: string;
 };
 
 type CartContextValue = {
   items: CartItem[];
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
-  setQty: (productId: string, qty: number) => void;
-  remove: (productId: string) => void;
+  setQty: (lineKey: string, qty: number) => void;
+  remove: (lineKey: string) => void;
   clear: () => void;
   count: number;
   subtotal: number;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const KEY = "osb_cart_v1";
+const KEY = "osb_cart_v2";
+
+export function cartLineKey(item: { productId: string; size?: string }) {
+  return item.size ? `${item.productId}::${item.size}` : item.productId;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -31,7 +36,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY) || localStorage.getItem("osb_cart_v1");
       if (raw) setItems(JSON.parse(raw) as CartItem[]);
     } catch {
       /* ignore */
@@ -46,25 +51,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartContextValue>(() => {
     const add: CartContextValue["add"] = (item, qty = 1) => {
       setItems((prev) => {
-        const found = prev.find((p) => p.productId === item.productId);
+        const key = cartLineKey(item);
+        const found = prev.find((p) => cartLineKey(p) === key);
         if (found) {
           const nextQty = Math.min(item.stock || 99, found.qty + qty);
           toast.success("Cart updated");
-          return prev.map((p) => (p.productId === item.productId ? { ...p, qty: nextQty } : p));
+          return prev.map((p) => (cartLineKey(p) === key ? { ...p, qty: nextQty } : p));
         }
         toast.success("Added to cart");
         return [...prev, { ...item, qty }];
       });
     };
-    const setQty = (productId: string, qty: number) => {
+    const setQty = (lineKey: string, qty: number) => {
       setItems((prev) =>
         prev
-          .map((p) => (p.productId === productId ? { ...p, qty: Math.max(1, Math.min(p.stock || 99, qty)) } : p))
+          .map((p) => (cartLineKey(p) === lineKey ? { ...p, qty: Math.max(1, Math.min(p.stock || 99, qty)) } : p))
           .filter((p) => p.qty > 0),
       );
     };
-    const remove = (productId: string) => {
-      setItems((prev) => prev.filter((p) => p.productId !== productId));
+    const remove = (lineKey: string) => {
+      setItems((prev) => prev.filter((p) => cartLineKey(p) !== lineKey));
       toast.message("Removed from cart");
     };
     const clear = () => setItems([]);

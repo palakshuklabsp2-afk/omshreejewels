@@ -20,6 +20,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
     ["/admin/homepage", "Homepage"],
     ["/admin/products", "Products"],
     ["/admin/categories", "Categories"],
+    ["/admin/sizes", "Sizes"],
     ["/admin/orders", "Orders"],
     ["/admin/customers", "Customers"],
   ] as const;

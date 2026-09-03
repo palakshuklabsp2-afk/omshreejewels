@@ -59,6 +59,7 @@ export default async function CategoryPage({
               salePrice: p.salePrice,
               images: p.images,
               stock: p.stock,
+              sizes: p.sizes,
             }}
           />
         ))}

@@ -14,8 +14,7 @@ export function HomepageShowreel({ src }: { src: string }) {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,162,39,0.16),transparent_62%)]" />
       <div className="relative mx-auto max-w-6xl px-4">
         <div className="text-center mb-7">
-          <p className="text-gold tracking-[0.38em] text-[11px]">THE ATELIER FILM</p>
-          <h2 className="font-display text-4xl sm:text-5xl text-wine mt-2">One glimpse. Pure gold.</h2>
+          <h2 className="font-display text-4xl sm:text-5xl text-wine mt-2">Our Glimpses</h2>
           <p className="mt-2 text-sm text-zinc-500">{STORE.name} · Unique jewellery, unique products</p>
         </div>
 

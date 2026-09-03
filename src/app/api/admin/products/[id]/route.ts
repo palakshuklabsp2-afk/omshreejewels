@@ -17,6 +17,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     price?: number;
     salePrice?: number | null;
     images?: string[];
+    sizes?: string[];
     stock?: number;
     sku?: string;
     tags?: string[];
@@ -31,6 +32,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     allowed.salePrice = body.salePrice === null || body.salePrice === "" ? null : Number(body.salePrice);
   }
   if (Array.isArray(body.images)) allowed.images = body.images;
+  if (Array.isArray(body.sizes)) allowed.sizes = body.sizes.map(String).filter(Boolean);
   if (body.stock !== undefined) allowed.stock = Number(body.stock);
   if (typeof body.sku === "string") allowed.sku = body.sku;
   if (Array.isArray(body.tags)) allowed.tags = body.tags;

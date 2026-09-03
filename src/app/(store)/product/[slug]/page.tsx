@@ -68,6 +68,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p className="mt-2 text-sm text-crimson">You save {formatInr(pricing.saved)} on this piece</p>
         ) : null}
         <p className="mt-6 text-zinc-700 whitespace-pre-line">{product.description}</p>
+        {product.sizes?.length ? (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-wine">Available sizes</p>
+            <p className="text-sm text-zinc-600 mt-1">{product.sizes.join(" · ")}</p>
+          </div>
+        ) : null}
         <p className="mt-4 text-sm">Stock: {product.stock > 0 ? `${product.stock} available` : "Out of stock"}</p>
         <AddToCart
           product={{
@@ -76,6 +82,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             image: optimizedImage(images[0]),
             price: pricing.selling,
             stock: product.stock,
+            sizes: product.sizes,
           }}
         />
         <p className="mt-6 text-sm text-crimson">🇮🇳 All over India shipping available</p>

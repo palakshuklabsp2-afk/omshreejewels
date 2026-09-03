@@ -134,6 +134,7 @@ export default async function HomePage() {
                   salePrice: p.salePrice,
                   images: p.images,
                   stock: p.stock,
+                  sizes: p.sizes,
                 }}
               />
             ))}

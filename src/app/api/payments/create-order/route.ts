@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 const itemSchema = z.object({
   productId: z.string(),
   qty: z.number().int().min(1).max(20),
+  size: z.string().optional(),
 });
 
 function fallbackDemo() {
@@ -53,14 +54,22 @@ export async function POST(req: Request) {
     if (!p || p.stock < line.qty) {
       return NextResponse.json({ error: "A product is out of stock" }, { status: 400 });
     }
+    const sizes = p.sizes || [];
+    if (sizes.length) {
+      const chosen = (line.size || "").trim();
+      if (!chosen || !sizes.includes(chosen)) {
+        return NextResponse.json({ error: `Select a size for ${p.name}` }, { status: 400 });
+      }
+    }
     const price = productPricing(p.price, p.salePrice).selling;
     subtotal += price * line.qty;
     items.push({
       productId: p._id,
-      name: p.name,
+      name: line.size ? `${p.name} · Size ${line.size}` : p.name,
       image: p.images?.[0] || "",
       qty: line.qty,
       price,
+      size: line.size || "",
     });
   }
 

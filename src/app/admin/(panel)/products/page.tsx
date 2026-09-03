@@ -13,6 +13,7 @@ type Product = {
   price: number;
   salePrice?: number | null;
   images?: string[];
+  sizes?: string[];
   isActive: boolean;
   category?: { _id?: string; name?: string } | string;
 };
@@ -26,11 +27,13 @@ const emptyForm = {
   discountPercent: "",
   salePrice: "",
   images: [] as string[],
+  sizes: [] as string[],
 };
 
 export default function ProductsAdmin() {
   const [items, setItems] = useState<Product[]>([]);
   const [cats, setCats] = useState<{ _id: string; name: string }[]>([]);
+  const [sizeOptions, setSizeOptions] = useState<{ _id: string; name: string }[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -50,6 +53,9 @@ export default function ProductsAdmin() {
     fetch("/api/admin/categories")
       .then((r) => r.json())
       .then((d) => setCats(d.items || []));
+    fetch("/api/admin/sizes")
+      .then((r) => r.json())
+      .then((d) => setSizeOptions(d.items || []));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -101,6 +107,7 @@ export default function ProductsAdmin() {
         price,
         salePrice: sale,
         images: form.images,
+        sizes: form.sizes,
       }),
     });
     const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -127,6 +134,7 @@ export default function ProductsAdmin() {
       discountPercent: pricing.discounted ? String(pricing.percent) : "",
       salePrice: pricing.discounted ? String(pricing.selling) : "",
       images: p.images || [],
+      sizes: p.sizes || [],
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -305,6 +313,42 @@ export default function ProductsAdmin() {
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
+        <div className="sm:col-span-2 rounded-2xl border border-dashed border-crimson/30 bg-ivory/60 px-4 py-4">
+          <span className="block text-sm font-medium text-wine">Sizes</span>
+          <span className="block text-xs text-zinc-500 mt-1">
+            Select sizes this product is available in. Create more in Admin → Sizes.
+          </span>
+          {sizeOptions.length === 0 ? (
+            <p className="text-xs text-crimson mt-2">No sizes yet. Add them under Sizes in the admin menu.</p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {sizeOptions.map((s) => {
+                const checked = form.sizes.includes(s.name);
+                return (
+                  <label
+                    key={s._id}
+                    className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm ${
+                      checked ? "bg-crimson text-white border-crimson" : "bg-white"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={checked}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          sizes: checked ? f.sizes.filter((n) => n !== s.name) : [...f.sizes, s.name],
+                        }))
+                      }
+                    />
+                    {s.name}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <AdminImageField
           label="Product photo"
           previewUrl={form.images[0]}
@@ -337,6 +381,7 @@ export default function ProductsAdmin() {
               <th>Price</th>
               <th>Discount</th>
               <th>Quantity</th>
+              <th>Sizes</th>
               <th></th>
             </tr>
           </thead>
@@ -364,6 +409,7 @@ export default function ProductsAdmin() {
                   })()}
                 </td>
                 <td>{p.stock}</td>
+                <td>{p.sizes?.length ? p.sizes.join(", ") : "—"}</td>
                 <td className="space-x-3 p-3 whitespace-nowrap">
                   <button className="text-crimson" type="button" onClick={() => startEdit(p)}>
                     Edit
